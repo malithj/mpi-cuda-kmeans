@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 
-__device__ float vector_distance(const float * v1, const float * v2, const int d) {
+__device__ float d_vector_distance(const float * v1, const float * v2, const int d) {
     float distance = 0.0;
 
     for (int i = 0; i < d; i ++) {
@@ -12,15 +12,15 @@ __device__ float vector_distance(const float * v1, const float * v2, const int d
 }
 
 
-__device__ int get_cluster_id(const float * local_vector, const float * centroids, const int k, const int d) {
+__device__ int d_get_cluster_id(const float * local_vector, const float * centroids, const int k, const int d) {
     int cluster_id = 0;
 
     /* first assignment has to be done to find minimum */
-    float min_distance = vector_distance(local_vector, &centroids[0], d);
+    float min_distance = d_vector_distance(local_vector, &centroids[0], d);
 
     /* for each centroid, compute the distance and find min */
     for (int i = 1; i < k; i ++) {
-        float distance = vector_distance(local_vector, &centroids[i], d);
+        float distance = d_vector_distance(local_vector, &centroids[i], d);
         if (distance < min_distance) {
             min_distance = distance;
             cluster_id = i;
@@ -30,7 +30,7 @@ __device__ int get_cluster_id(const float * local_vector, const float * centroid
 }
 
 
-__device__ void sum_vectors(const float * v, float * sum, const int d) {
+__device__ void d_sum_vectors(const float * v, float * sum, const int d) {
     for (int i = 0; i < d; i ++) {
         atomicAdd(&sum[i], v[i]);
     }
@@ -42,14 +42,14 @@ __global__ void kernel(float * d_local_vectors, float * d_centroids, const int v
     int i = blockIdx.x * blockDim.x + threadIdx.x; 
     
     if (i < vectors_per_proc) {
-        int cluster_id = get_cluster_id(&d_local_vectors[i * dimension], d_centroids, number, dimension);    
+        int cluster_id = d_get_cluster_id(&d_local_vectors[i * dimension], d_centroids, number, dimension);    
         atomicAdd(&d_count[cluster_id], 1);
-        sum_vectors(&d_local_vectors[i * dimension], &d_sum[cluster_id * dimension], dimension);
+        d_sum_vectors(&d_local_vectors[i * dimension], &d_sum[cluster_id * dimension], dimension);
     } 
 }
 
-extern "C" void do_cluster_on_gpu(const float * local_vectors, const float * centroids, const int vectors_per_proc,
-                                  const int number, const int dimension, int * count, float * sum) {
+extern void do_cluster_on_gpu(const float * local_vectors, const float * centroids, const int vectors_per_proc,
+                              const int number, const int dimension, int * count, float * sum) {
     float * d_local_vectors,
           * d_centroids,
           * d_sum;

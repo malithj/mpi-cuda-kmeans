@@ -1,20 +1,20 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "include/txtproc.h"
 
-const char * FILENAME_DOCWORD = "../bag_of_words/enron/docword.enron.txt";
-const char * FILENAME_VOCAB   = "../bag_of_words/enron/vocab.enron.txt";
+//const char * FILENAME_DOCWORD = "../bag_of_words/enron/docword.enron.txt";
+//const char * FILENAME_VOCAB   = "../bag_of_words/enron/vocab.enron.txt";
 
 float * document_matrix;
 int   * df_array;
 
-DocumentObject * get_document_matrix(const float max_df, const int min_df) {
+DocumentObject * get_document_matrix(const float max_df, const int min_df, const char * FILENAME_DOCWORD) {
     FILE * docword;   /* define document word count file */
     FILE * vocab;     /* define vocabulary */
   
-    char * delim          = " ";
+    char * delim          = (char *)malloc(sizeof(char));
+    * delim               = ' ';
     char * line           = NULL;
     int    read           = 0;
     size_t len            = 0;
@@ -24,9 +24,8 @@ DocumentObject * get_document_matrix(const float max_df, const int min_df) {
     size_t doc_lines      = 0;
 
     docword = fopen(FILENAME_DOCWORD, "r");
-    vocab   = fopen(FILENAME_VOCAB, "r");
 
-    if (docword == NULL || vocab == NULL) {
+    if (docword == NULL) {
         perror("Error while opening the document word count file ");
         exit(EXIT_FAILURE);
     } 
@@ -56,7 +55,7 @@ DocumentObject * get_document_matrix(const float max_df, const int min_df) {
         } 
         count += 1;
         if (count > 3) {
-            size_t * value      = malloc(3 * sizeof(size_t));
+            size_t * value      =(size_t *) malloc(3 * sizeof(size_t));
             size_t token_number = 0;
             char * ptr = strtok(line, delim);
             while(ptr != NULL) {
@@ -93,7 +92,7 @@ DocumentObject * get_document_matrix(const float max_df, const int min_df) {
         } 
         count += 1;
         if (count > 3) {
-            size_t * value      = malloc(3 * sizeof(size_t));
+            size_t * value      = (size_t *)malloc(3 * sizeof(size_t));
             size_t token_number = 0;
             char * ptr = strtok(line, delim);
             while(ptr != NULL) {
@@ -109,7 +108,6 @@ DocumentObject * get_document_matrix(const float max_df, const int min_df) {
     }
     printf("Completed reading file: %s\n", FILENAME_DOCWORD);
     fclose(docword);
-    fclose(vocab);
     DocumentObject * dom;
     dom = (DocumentObject *)malloc(sizeof(DocumentObject));
     dom -> document_count = document_count;

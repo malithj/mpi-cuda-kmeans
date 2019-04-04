@@ -5,4 +5,4 @@ typedef struct {
     float * document_matrix; 
 } DocumentObject;
 
-DocumentObject * get_document_matrix(const float max_df, const int min_df);
+DocumentObject * get_document_matrix(const float max_df, const int min_df, const char * FILENAME_DOCWORD);

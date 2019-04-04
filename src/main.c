@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <assert.h>
 #include "include/txtproc.h"
+#include "include/cnfparser.h"
 
 #define THRESHOLD 0.0001
 
@@ -31,6 +32,7 @@ float * global_vectors,
 int   * global_count,
       * global_labels;
 
+const char * CONFIG_FILE = "resources/config.CONFIG";
 
 int main() {
     int N = 0;   /* Total number of samples */
@@ -49,13 +51,14 @@ int main() {
     MPI_Comm_size(MPI_COMM_WORLD, &tasks);
    
     MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
-
+    
     /* initialize the process */
     if (rank == 0) {
+        /* read the configuration file */
+        const char ** config = get_config(CONFIG_FILE);
+       
         /* init global vector */
-        //global_vectors = create_rand_nums(d * N);
-        
-        DocumentObject * dom = get_document_matrix(0.5, 2);
+        DocumentObject * dom = get_document_matrix(0.5, 2, config[0]);
         N = dom->document_count;
         d = dom->vocab_count;
         global_vectors = dom->document_matrix; 
